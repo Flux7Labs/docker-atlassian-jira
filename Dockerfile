@@ -10,11 +10,21 @@ ENV JIRA_HOME     /var/local/atlassian/jira
 ENV JIRA_INSTALL  /usr/local/atlassian/jira
 ENV JIRA_VERSION  6.4.2
 
+## SSH 
+RUN apt-get update && apt-get install -y openssh-server
+RUN mkdir /var/run/sshd
+RUN echo 'root:screencast' | chpasswd
+RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
 # Install Atlassian JIRA and helper tools and setup initial home
 # directory structure.
 RUN set -x \
     && apt-get update --quiet \
-    && apt-get install --quiet --yes --no-install-recommends libtcnative-1 xmlstarlet \
+    && apt-get install --quiet --yes --no-install-recommends libtcnative-1 xmlstarlet supervisor \
     && apt-get clean \
     && mkdir -p                "${JIRA_HOME}" \
     && chmod -R 700            "${JIRA_HOME}" \
@@ -42,6 +52,8 @@ USER daemon:daemon
 
 # Expose default HTTP connector port.
 EXPOSE 8080
+# for ssh into this docker container
+EXPOSE 22
 
 # Set volume mount points for installation and home directory. Changes to the
 # home directory needs to be persisted as well as parts of the installation
@@ -52,4 +64,4 @@ VOLUME ["/var/local/atlassian/jira"]
 WORKDIR ${JIRA_HOME}
 
 # Run Atlassian JIRA as a foreground process by default.
-CMD ["/usr/local/atlassian/jira/bin/start-jira.sh", "-fg"]
+ENTRYPOINT ["/usr/bin/supervisord"]
