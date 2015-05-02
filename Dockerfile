@@ -1,5 +1,10 @@
 FROM java:7
 
+## ENV attributes for proxy. These HAVE to get overwritten when you run the container
+ENV no_proxy localhost,127.0.0.0/8
+ENV http_proxy http://proxy.ecos.aws:8080
+ENV https_proxy http://proxy.ecos.aws:8080
+
 # Configuration variables.
 ENV JIRA_HOME     /var/local/atlassian/jira
 ENV JIRA_INSTALL  /usr/local/atlassian/jira
@@ -24,7 +29,11 @@ RUN set -x \
     && chown -R daemon:daemon  "${JIRA_INSTALL}/logs" \
     && chown -R daemon:daemon  "${JIRA_INSTALL}/temp" \
     && chown -R daemon:daemon  "${JIRA_INSTALL}/work" \
-    && echo -e                 "\njira.home=$JIRA_HOME" >> "${JIRA_INSTALL}/atlassian-jira/WEB-INF/classes/jira-application.properties"
+    && echo -e                 "\njira.home=$JIRA_HOME" >> "${JIRA_INSTALL}/atlassian-jira/WEB-INF/classes/jira-application.properties" \
+    # Add mysql driver
+    && curl -sSL http://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.32.tar.gz -o /tmp/mysql-connector-java.tar.gz \
+    && tar xzf /tmp/mysql-connector-java.tar.gz -C /tmp \
+    && cp /tmp/mysql-connector-java-5.1.32/mysql-connector-java-5.1.32-bin.jar ${JIRA_INSTALL}/lib/
 
 # Use the default unprivileged account. This could be considered bad practice
 # on systems where multiple processes end up being executed by 'daemon' but
