@@ -1,9 +1,9 @@
 FROM java:7
 
 ## ENV attributes for proxy. These HAVE to get overwritten when you run the container
-ENV no_proxy localhost,127.0.0.0/8
-ENV http_proxy http://proxy.ecos.aws:8080
-ENV https_proxy http://proxy.ecos.aws:8080
+#ENV no_proxy localhost,127.0.0.0/8
+#ENV http_proxy http://proxy.ecos.aws:8080
+#ENV https_proxy http://proxy.ecos.aws:8080
 
 # Configuration variables.
 ENV JIRA_HOME     /var/local/atlassian/jira
