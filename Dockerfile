@@ -24,7 +24,8 @@ RUN echo "export VISIBLE=now" >> /etc/profile
 # directory structure.
 RUN set -x \
     && apt-get update --quiet \
-    && apt-get install --quiet --yes --no-install-recommends libtcnative-1 xmlstarlet supervisor \
+    && apt-get install --quiet --yes --no-install-recommends libtcnative-1 xmlstarlet \
+    && apt-get install --quiet --yes supervisor \
     && apt-get clean \
     && mkdir -p                "${JIRA_HOME}" \
     && chmod -R 700            "${JIRA_HOME}" \
@@ -63,5 +64,7 @@ VOLUME ["/var/local/atlassian/jira"]
 # Set the default working directory as the installation directory.
 WORKDIR ${JIRA_HOME}
 
+USER root:root
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Run Atlassian JIRA as a foreground process by default.
 ENTRYPOINT ["/usr/bin/supervisord"]
